@@ -7,7 +7,7 @@ import androidx.appcompat.app.AppCompatActivity
 import vinh.le.tictactoe.databinding.ActivityGameBinding
 
 class GameActivity : AppCompatActivity(), View.OnClickListener {
-    lateinit var binding: ActivityGameBinding
+    private lateinit var binding: ActivityGameBinding
     
     private var gameModel: GameModel? = null
     
@@ -68,7 +68,9 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
                     }
                     
                     GameStatus.FINISHED -> {
-                        if (winner.isNotEmpty()) winner + "WON"
+                        if (winner.isNotEmpty()) {
+                            winner + "WON"
+                        }
                         else "DRAW"
                     }
                 }
@@ -102,7 +104,7 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
             intArrayOf(0, 4, 8),
             intArrayOf(2, 4, 6)
         )
-        GameData.gameModel.apply {
+        gameModel?.apply {
             for (i in winningPos) {
                 if (
                     filledPos[i[0]] == filledPos[i[1]] &&
@@ -111,14 +113,23 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
                 ) {
                     gameStatus = GameStatus.FINISHED
                     winner = filledPos[i[0]]
+                    updateGameData(this)
+                    return
                 }
-                updateGameData(this)
+                if (filledPos.all { it.isNotEmpty() }) {
+                    gameStatus = GameStatus.FINISHED
+                    winner = ""
+                    updateGameData(this)
+                }
             }
         }
+    }
+    
     override fun onClick(v: View?) {
         gameModel?.apply {
             if (gameStatus != GameStatus.INPROCESS) {
-                Toast.makeText(applicationContext, "Game not started", Toast.LENGTH_SHORT).show()
+                Toast.makeText(applicationContext, "Game not started", Toast.LENGTH_SHORT)
+                    .show()
                 return
             }
             // game is in process
@@ -129,6 +140,6 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
                 currentPlayer = if (currentPlayer == "X") "O" else "X"
                 updateGameData(this)
             }
+            }
         }
     }
-}
