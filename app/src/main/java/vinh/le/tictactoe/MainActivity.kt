@@ -1,8 +1,8 @@
 package vinh.le.tictactoe
 
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.appcompat.app.AppCompatActivity
 import vinh.le.tictactoe.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
@@ -15,16 +15,21 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         binding.playOfflineBtn.setOnClickListener {
-            createOfflineGame();
+            createOfflineGame()
 
         }
     }
     fun createOfflineGame(){
-        startGame();
+        GameData.saveGameModel(
+            GameModel(
+                gameStatus = GameStatus.JOINED
+            )
+        )
+        startGame()
 
     }
     fun startGame(){
-        startActivity(Intent(this,GameActivity::class.java));
-
+        startActivity(Intent(this,GameActivity::class.java))
+        
     }
 }

@@ -2,6 +2,7 @@ package vinh.le.tictactoe
 
 import android.os.Bundle
 import android.view.View
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import vinh.le.tictactoe.databinding.ActivityGameBinding
 
@@ -31,15 +32,12 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
         
         GameData.gameModel.observe(this) {
             gameModel = it
+            setUI()
         }
         
     }
     
-    fun startGame() {
-        TODO("Not yet implemented")
-    }
-    
-    fun setUI() {
+    private fun setUI() {
         gameModel?.apply {
             binding.btn0.text = filledPos[0]
             binding.btn1.text = filledPos[1]
@@ -51,11 +49,86 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
             binding.btn7.text = filledPos[7]
             binding.btn8.text = filledPos[8]
             
+            binding.startGameBtn.visibility = View.VISIBLE
+            
+            binding.gameStatusText.text =
+                when (gameStatus) {
+                    GameStatus.CREATED -> {
+                        binding.startGameBtn.visibility = View.INVISIBLE
+                        "Game ID: " + gameID
+                    }
+                    
+                    GameStatus.JOINED -> {
+                        "Click on Start Game"
+                    }
+                    
+                    GameStatus.INPROCESS -> {
+                        binding.startGameBtn.visibility = View.INVISIBLE
+                        currentPlayer + "turn"
+                    }
+                    
+                    GameStatus.FINISHED -> {
+                        if (winner.isNotEmpty()) winner + "WON"
+                        else "DRAW"
+                    }
+                }
+            
         }
     }
     
+    fun startGame() {
+        gameModel?.apply {
+            updateGameData(
+                GameModel(
+                    gameID = gameID,
+                    gameStatus = GameStatus.INPROCESS
+                )
+            )
+        }
+    }
     
+    fun updateGameData(model: GameModel) {
+        GameData.saveGameModel(model)
+    }
+    
+    fun checkForWinner() {
+        val winningPos = arrayOf(
+            intArrayOf(0, 1, 2),
+            intArrayOf(3, 4, 5),
+            intArrayOf(6, 7, 8),
+            intArrayOf(0, 3, 6),
+            intArrayOf(1, 4, 7),
+            intArrayOf(2, 5, 8),
+            intArrayOf(0, 4, 8),
+            intArrayOf(2, 4, 6)
+        )
+        GameData.gameModel.apply {
+            for (i in winningPos) {
+                if (
+                    filledPos[i[0]] == filledPos[i[1]] &&
+                    filledPos[i[1]] == filledPos[i[2]] &&
+                    filledPos[i[0]].isNotEmpty()
+                ) {
+                    gameStatus = GameStatus.FINISHED
+                    winner = filledPos[i[0]]
+                }
+                updateGameData(this)
+            }
+        }
     override fun onClick(v: View?) {
-        TODO("Not yet implemented")
+        gameModel?.apply {
+            if (gameStatus != GameStatus.INPROCESS) {
+                Toast.makeText(applicationContext, "Game not started", Toast.LENGTH_SHORT).show()
+                return
+            }
+            // game is in process
+            val clickedPos = (v?.tag as String).toInt()
+            if (filledPos[clickedPos].isEmpty()) {
+                filledPos[clickedPos] = currentPlayer
+                checkForWinner()
+                currentPlayer = if (currentPlayer == "X") "O" else "X"
+                updateGameData(this)
+            }
+        }
     }
 }
